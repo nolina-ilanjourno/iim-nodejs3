@@ -7,50 +7,97 @@ class UsersController {
   }
 
   async store(req, res) {
-    const body = req.body;
-    const user = await prisma.user.create({
-      data: body,
-    });
-    return res.status(201).send(user);
+    try {
+      const body = req.body;
+
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: body.email,
+        },
+      });
+
+      if (existingUser === null) {
+        const user = await prisma.user.create({
+          data: body,
+        });
+        return res.status(201).send(user);
+      }
+
+      return res.status(409).send("User already exists");
+    } catch (error) {
+      return res.status(500).send(error.message);
+    }
   }
 
-  show(req, res) {
-    const id = req.params.id;
-    const user = users.find((user) => user.id === parseInt(id));
+  async show(req, res) {
+    try {
+      const id = req.params.id;
+      const user = await prisma.user.findFirst({
+        where: {
+          id: parseInt(id),
+        },
+      });
 
-    if (user === undefined) {
-      return res.status(404).send("User not found");
+      if (user === null) {
+        return res.status(404).send("User not found");
+      }
+
+      return res.status(200).send(user);
+    } catch (error) {
+      return res.status(500).send(error.message);
     }
-
-    return res.status(200).send(user);
   }
 
-  update(req, res) {
-    const id = req.params.id;
-    const body = req.body;
-    const user = users.find((u) => u.id === parseInt(id));
+  async update(req, res) {
+    try {
+      const id = req.params.id;
+      const body = req.body;
+      let user = await prisma.user.findFirst({
+        where: {
+          id: parseInt(id),
+        },
+      });
 
-    if (user === undefined) {
-      return res.status(404).send("User not found");
+      if (user === null) {
+        return res.status(404).send("User not found");
+      }
+
+      user = await prisma.user.update({
+        where: {
+          id: parseInt(id),
+        },
+        data: body,
+      });
+
+      return res.status(200).send(user);
+    } catch (error) {
+      return res.status(500).send(error.message);
     }
-
-    user.name = body.name;
-
-    return res.status(200).send(user);
   }
 
-  destroy(req, res) {
-    const id = req.params.id;
-    const user = users.find((u) => u.id === parseInt(id));
+  async destroy(req, res) {
+    try {
+      const id = req.params.id;
+      let user = await prisma.user.findFirst({
+        where: {
+          id: parseInt(id),
+        },
+      });
 
-    if (user === undefined) {
-      return res.status(404).send("User not found");
+      if (user === null) {
+        return res.status(404).send("User not found");
+      }
+
+      await prisma.user.delete({
+        where: {
+          id: parseInt(id),
+        },
+      });
+
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).send(error.message);
     }
-
-    const index = users.indexOf(user);
-    users.splice(index, 1);
-
-    return res.status(204).send();
   }
 }
 
