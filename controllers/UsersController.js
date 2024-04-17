@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { hashPassword } from "../utils/bcrypt.js";
 
 class UsersController {
   async index(req, res) {
@@ -18,7 +19,11 @@ class UsersController {
 
       if (existingUser === null) {
         const user = await prisma.user.create({
-          data: body,
+          data: {
+            name: body.name,
+            email: body.email,
+            password: await hashPassword(body.password),
+          },
         });
         return res.status(201).send(user);
       }
