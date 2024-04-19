@@ -2,6 +2,11 @@ import prisma from "../config/prisma.js";
 import { hashPassword } from "../utils/bcrypt.js";
 
 class UsersController {
+  getMyProfile(req, res) {
+    const user = req.user;
+    return res.status(200).send(user);
+  }
+
   async index(req, res) {
     const users = await prisma.user.findMany();
     return res.status(200).send(users);
