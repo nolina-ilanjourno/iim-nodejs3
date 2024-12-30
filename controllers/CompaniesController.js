@@ -1,39 +1,32 @@
 import prisma from "../config/prisma.js";
-import { hashPassword } from "../utils/bcrypt.js";
 
-class UsersController {
-  getMyProfile(req, res) {
-    const user = req.user;
-    return res.status(200).send(user);
-  }
-
+class CompaniesController {
   async index(req, res) {
-    const users = await prisma.user.findMany();
-    return res.status(200).send(users);
+    const companies = await prisma.company.findMany();
+    return res.status(200).send(companies);
   }
 
   async store(req, res) {
     try {
       const body = req.body;
 
-      const existingUser = await prisma.user.findFirst({
+      const existingCompany = await prisma.company.findFirst({
         where: {
-          email: body.email,
+          name: body.name,
         },
       });
 
-      if (existingUser === null) {
-        const user = await prisma.user.create({
+      if (existingCompany === null) {
+        const company = await prisma.company.create({
           data: {
             name: body.name,
-            email: body.email,
-            password: await hashPassword(body.password),
+            address: body.address
           },
         });
-        return res.status(201).send(user);
+        return res.status(201).send(company);
       }
 
-      return res.status(409).send("User already exists");
+      return res.status(409).send("Company already exists");
     } catch (error) {
       return res.status(500).send(error.message);
     }
@@ -42,17 +35,17 @@ class UsersController {
   async show(req, res) {
     try {
       const id = req.params.id;
-      const user = await prisma.user.findFirst({
+      const company = await prisma.company.findFirst({
         where: {
           id: parseInt(id),
         },
       });
 
-      if (user === null) {
-        return res.status(404).send("User not found");
+      if (company === null) {
+        return res.status(404).send("Company not found");
       }
 
-      return res.status(200).send(user);
+      return res.status(200).send(company);
     } catch (error) {
       return res.status(500).send(error.message);
     }
@@ -61,22 +54,22 @@ class UsersController {
   async update(req, res) {
     try {
       const id = req.params.id;
-      const body = req.body;
-      let user = await prisma.user.findFirst({
+      const data = req.body;
+      let company = await prisma.company.findFirst({
         where: {
           id: parseInt(id),
         },
       });
 
-      if (user === null) {
-        return res.status(404).send("User not found");
+      if (company === null) {
+        return res.status(404).send("Company not found");
       }
 
-      user = await prisma.user.update({
+      company = await prisma.company.update({
         where: {
           id: parseInt(id),
         },
-        data: body,
+        data,
       });
 
       return res.status(200).send(user);
@@ -88,17 +81,17 @@ class UsersController {
   async destroy(req, res) {
     try {
       const id = req.params.id;
-      let user = await prisma.user.findFirst({
+      let company = await prisma.company.findFirst({
         where: {
           id: parseInt(id),
         },
       });
 
-      if (user === null) {
-        return res.status(404).send("User not found");
+      if (company === null) {
+        return res.status(404).send("Company not found");
       }
 
-      await prisma.user.delete({
+      await prisma.company.delete({
         where: {
           id: parseInt(id),
         },
@@ -111,4 +104,4 @@ class UsersController {
   }
 }
 
-export default new UsersController();
+export default new CompaniesController();

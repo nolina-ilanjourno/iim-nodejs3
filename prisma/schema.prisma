@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,18 +8,79 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  password String
-  posts Post[]
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String?
+  password   String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("users")
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Company {
+  id         Int       @id @default(autoincrement())
+  name       String
+  address    String
+  websites   Website[]
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+
+  @@map("companies")
+}
+
+model Website {
+  id                 Int                  @id @default(autoincrement())
+  logo               String
+  domain             String
+  primary_color      String
+  secondary_color    String
+  description        String?              @db.Text
+  published          Boolean              @default(false)
+  company            Company              @relation(fields: [company_id], references: [id])
+  company_id         Int
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @default(now()) @updatedAt
+  WebsiteTranslation WebsiteTranslation[]
+
+  @@map("websites")
+}
+
+model Language {
+  id           Int           @id @default(autoincrement())
+  flag         String        @db.VarChar(4)
+  code         String
+  name         String
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @default(now()) @updatedAt
+  translations Translation[]
+
+  @@map("languages")
+}
+
+model Translation {
+  id                 Int                  @id @default(autoincrement())
+  language           Language             @relation(fields: [language_id], references: [id])
+  language_id        Int
+  key                String
+  value              String               @db.Text
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @default(now()) @updatedAt
+  WebsiteTranslation WebsiteTranslation[]
+
+  @@unique([language_id, key]) // Contrainte d'unicité composite
+  @@map("translations")
+}
+
+model WebsiteTranslation {
+  id             Int         @id @default(autoincrement())
+  website        Website     @relation(fields: [website_id], references: [id])
+  website_id     Int
+  translation    Translation @relation(fields: [translation_id], references: [id])
+  translation_id Int
+  value          String
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @default(now()) @updatedAt
+
+  @@map("website_translation")
 }
